@@ -10,6 +10,13 @@ WIDTH, HEIGHT = 900, 700
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("L chat")
 
+try:
+    _icon = pygame.image.load("favicon.png")
+    pygame.display.set_icon(_icon)
+    favicon_bar = pygame.transform.smoothscale(_icon.convert_alpha(), (36, 36))
+except:
+    favicon_bar = None
+
 FONT = pygame.font.SysFont("Georgia", 22)
 TITLE_FONT = pygame.font.SysFont("arial", 40, bold=True)
 SUBTITLE_FONT = pygame.font.SysFont("arial", 20, italic=True)
@@ -37,7 +44,7 @@ messages = []
 input_text = ""
 scroll_offset = 0
 scroll_target = 0
-auto_scroll = Tru
+auto_scroll = True
 
 hearts = []
 
@@ -67,6 +74,12 @@ def spawn_hearts():
                 (220, 80, 120),
             ]),
         })
+
+try:
+    _icon = pygame.image.load("favicon.png").convert_alpha()
+    pygame.display.set_icon(_icon)
+except:
+    pass
 
 def update_hearts():
     global hearts
@@ -123,7 +136,6 @@ except:
 
 input_box = pygame.Rect(20, HEIGHT - INPUT_HEIGHT + 10, WIDTH - 40, 60)
 
-# Bot state
 typing = False
 typing_start_time = 0
 typing_delay = 1200
@@ -247,7 +259,6 @@ def draw():
         scroll_target = max_scroll
 
     scroll_target = max(0, min(scroll_target, max_scroll))
-
     scroll_offset += (scroll_target - scroll_offset) * 0.18
     scroll_offset = max(0, min(scroll_offset, max_scroll))
 
@@ -265,6 +276,11 @@ def draw():
     screen.blit(TITLE_FONT.render("L Lawliet", True, TEXT), (190, 50))
     pygame.draw.circle(screen, (144, 238, 144), (200, 110), 6)
     screen.blit(SUBTITLE_FONT.render("Online", True, (120, 110, 120)), (215, 98))
+
+    esc_font = pygame.font.SysFont("arial", 13, italic=True)
+    esc_surf = esc_font.render("ESC — menu", True, (200, 160, 175))
+    screen.blit(esc_surf, (WIDTH - esc_surf.get_width() - 16, 10))
+
     pygame.draw.line(screen, BOX_BORDER, (20, HEADER_HEIGHT - 2), (WIDTH - 20, HEADER_HEIGHT - 2), 2)
 
     screen.set_clip(pygame.Rect(0, CHAT_TOP, WIDTH, CHAT_AREA_HEIGHT))
@@ -283,12 +299,11 @@ def draw():
         screen.blit(TYPING_FONT.render("L is typing...", True, (160, 150, 160)), (35, int(y)))
 
     screen.set_clip(None)
-
     draw_hearts()
 
     if max_scroll > 0:
         bar_h = max(30, int(CHAT_AREA_HEIGHT * CHAT_AREA_HEIGHT / total_h))
-        scroll_frac = scroll_offset / max_scroll   # 0=top, 1=bottom
+        scroll_frac = scroll_offset / max_scroll
         bar_y = CHAT_TOP + int((CHAT_AREA_HEIGHT - bar_h) * scroll_frac)
         pygame.draw.rect(screen, (255, 220, 228), pygame.Rect(WIDTH - 10, CHAT_TOP, 6, CHAT_AREA_HEIGHT), border_radius=3)
         pygame.draw.rect(screen, BOX_BORDER, pygame.Rect(WIDTH - 10, bar_y, 6, bar_h), border_radius=3)
@@ -301,12 +316,19 @@ def draw():
     pygame.display.flip()
 
 def main():
-    global input_text, scroll_offset, scroll_target, auto_scroll
+    global input_text, scroll_offset, scroll_target, auto_scroll, messages, hearts, typing
 
-    running = True
+    messages = []
+    hearts = []
+    input_text = ""
+    scroll_offset = 0
+    scroll_target = 0
+    auto_scroll = True
+    typing = False
+
     last_user_msg = ""
 
-    while running:
+    while True:
         CLOCK.tick(60)
         now = pygame.time.get_ticks()
 
@@ -317,7 +339,8 @@ def main():
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                pygame.quit()
+                sys.exit()
 
             elif event.type == pygame.MOUSEWHEEL:
                 max_scroll = max(0, compute_total_content_height() - CHAT_AREA_HEIGHT)
@@ -326,7 +349,10 @@ def main():
                 auto_scroll = (scroll_target >= max_scroll)
 
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN:
+                if event.key == pygame.K_ESCAPE:
+                    return
+
+                elif event.key == pygame.K_RETURN:
                     if input_text.strip() and not typing:
                         messages.append(("user", input_text.strip()))
                         last_user_msg = input_text
@@ -352,9 +378,6 @@ def main():
                         input_text += event.unicode
 
         draw()
-
-    pygame.quit()
-    sys.exit()
 
 if __name__ == "__main__":
     main()
