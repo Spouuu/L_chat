@@ -1,73 +1,80 @@
 # L Chat
 
-A tiny and cute chat project made with **Python** and **Pygame**!
+A small chatbot app built with Python and Pygame, styled after a messaging interface. It's a personal project I made for fun while learning how to work with UI animations in Pygame.
 
-L Chat is a fun little chatbot experiment featuring animated messages, adorable effects, and a cozy chat-like interface. It's still a work in progress, so expect new features, improvements, and occasional bugs along the way! (´｡• ᵕ •｡`)♡
+Still a work in progress — things might break, change, or get added without much notice.
 
 ---
 
 ## Features
 
-* Cute chat-style interface
-* Typing animation
-* Custom bot responses
-* Heart effects
-* Scrollable message history
-* Lightweight and easy to customize
+- Chat-style interface with message bubbles
+- Typing indicator animation
+- Custom bot responses loaded from a text file
+- Heart animations triggered by certain messages
+- Scrollable message history
+- Lofi background music
+- Pink menu screen with credits
 
 ---
 
-## Getting Started
-
-Install the required dependency:
+## Requirements
 
 ```bash
 pip install pygame
 ```
 
-Run the project:
+---
+
+## How to Run
 
 ```bash
-python main.py
+python menu.py
 ```
 
 ---
 
 ## How It Works
 
-The bot uses predefined responses stored in a text file and replies based on simple message matching
+Bot responses are stored in `bot_responses.txt`. Each line follows this format:
 
-This project was created for fun, learning, and experimenting with UI animations in Pygame
+```
+trigger1|trigger2 ... Bot reply here
+```
 
----
-
-## Planned Features
-
-*  More responses
-* Smarter message matching
-* New visual effects and animations
-* Improved chat experience (´꒳`)
-* Performance improvements
-* General polish and quality-of-life updates
+The bot matches your message against the triggers and returns the corresponding reply. If nothing matches, it falls back to a default response.
 
 ---
 
-## Work in Progress
+## Project Structure
 
-L Chat is actively being developed.
-
-Some features may be unfinished, change without notice, or occasionally break as new updates are added.
-
-Thank you for checking it out! (｡♥‿♥｡)
-
----
-
-## Contributing
-
-Suggestions, bug reports, and ideas are always welcome!
-
-If you'd like to help improve L Chat, feel free to open an issue or submit a pull request. (ﾉ´ヮ`)ﾉ*: ･ﾟ
+```
+L_chatbot/
+├── menu.py            # Main entry point — launches the menu
+├── main.py            # Chat screen
+├── bot_responses.txt  # Bot response definitions
+├── avatar.jpg         # L Lawliet avatar
+├── bg.png             # Chat background image
+├── favicon.png        # Window icon
+└── lofi.wav           # Background music
+```
 
 ---
 
-Made with Python, Pygame, and a little bit of love ♡(˶ᵔ ᵕ ᵔ˶)
+## Planned
+
+- More bot responses
+- Smarter message matching
+- New visual effects
+- General polish
+
+---
+
+## Credits
+
+- Music by [Niobium Face](https://niobiumfafce.itch.io/free-lofi-music-pack-15-full-songs-royalty-free-lofi-music) — free lofi music pack, royalty free
+- Built with [Python](https://www.python.org/) and [Pygame](https://www.pygame.org/)
+
+---
+
+Made by Spouuu
