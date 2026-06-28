@@ -1,6 +1,7 @@
 import pygame
 import sys
 import math
+import os
 
 pygame.init()
 
@@ -9,21 +10,29 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("L Chat")
 CLOCK = pygame.time.Clock()
 
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except AttributeError:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+
+    return os.path.join(base_path, relative_path)
+
 try:
-    _icon = pygame.image.load("favicon.png")
+    _icon = pygame.image.load(resource_path("favicon.png"))
     pygame.display.set_icon(_icon)
     favicon_bar = pygame.transform.smoothscale(_icon.convert_alpha(), (36, 36))
 except:
     favicon_bar = None
 try:
-    pygame.mixer.music.load("lofi.wav")
+    pygame.mixer.music.load(resource_path("lofi.wav"))
     pygame.mixer.music.set_volume(0.5)
     pygame.mixer.music.play(-1)
 except:
     pass
 
 try:
-    _icon = pygame.image.load("favicon.png").convert_alpha()
+    _icon = pygame.image.load(resource_path("favicon.png")).convert_alpha()
     pygame.display.set_icon(_icon)
 except:
     pass

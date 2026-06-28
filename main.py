@@ -10,12 +10,12 @@ WIDTH, HEIGHT = 900, 700
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("L chat")
 
-try:
-    _icon = pygame.image.load("favicon.png")
-    pygame.display.set_icon(_icon)
-    favicon_bar = pygame.transform.smoothscale(_icon.convert_alpha(), (36, 36))
-except:
-    favicon_bar = None
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except AttributeError:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(base_path, relative_path)
 
 FONT = pygame.font.SysFont("Georgia", 22)
 TITLE_FONT = pygame.font.SysFont("arial", 40, bold=True)
@@ -76,63 +76,55 @@ def spawn_hearts():
         })
 
 try:
-    _icon = pygame.image.load("favicon.png").convert_alpha()
+    _icon = pygame.image.load(resource_path("favicon.png")).convert_alpha()
     pygame.display.set_icon(_icon)
+    favicon_bar = pygame.transform.smoothscale(_icon, (36, 36))
 except:
-    pass
-
-def update_hearts():
-    global hearts
-    for h in hearts:
-        h["age"] += 1
-        h["y"] -= h["vy"]
-        h["x"] += h["vx"] + math.sin(h["age"] * h["wobble_speed"] + h["wobble_offset"]) * 0.5
-        fade_start = h["lifetime"] * 0.6
-        if h["age"] > fade_start:
-            h["alpha"] = max(0, int(255 * (1 - (h["age"] - fade_start) / (h["lifetime"] - fade_start))))
-    hearts = [h for h in hearts if h["age"] < h["lifetime"]]
-
-def draw_heart(surface, x, y, size, color, alpha):
-    heart_surf = pygame.Surface((size * 2 + 4, size * 2 + 4), pygame.SRCALPHA)
-    cx, cy = size + 2, size + 2
-    r = size // 2
-    pygame.draw.circle(heart_surf, (*color, alpha), (cx - r, cy - r // 2), r)
-    pygame.draw.circle(heart_surf, (*color, alpha), (cx + r, cy - r // 2), r)
-    points = [
-        (cx - size, cy - r // 2),
-        (cx + size, cy - r // 2),
-        (cx, cy + size),
-    ]
-    pygame.draw.polygon(heart_surf, (*color, alpha), points)
-    surface.blit(heart_surf, (int(x) - size - 2, int(y) - size - 2))
-
-def draw_hearts():
-    for h in hearts:
-        draw_heart(screen, h["x"], h["y"], h["size"], h["color"], h["alpha"])
-
-def round_avatar(image, radius=65):
-    size = image.get_size()
-    mask = pygame.Surface(size, pygame.SRCALPHA)
-    pygame.draw.rect(mask, (255, 255, 255), (0, 0, size[0], size[1]), border_radius=radius)
-    rounded = pygame.Surface(size, pygame.SRCALPHA)
-    rounded.blit(image, (0, 0))
-    rounded.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
-    return rounded
+    favicon_bar = None
 
 try:
-    avatar = pygame.image.load("avatar.jpg").convert_alpha()
+    avatar = pygame.image.load(resource_path("avatar.jpg")).convert_alpha()
     avatar = pygame.transform.smoothscale(avatar, (130, 130))
+    def round_avatar(image, radius=65):
+        size = image.get_size()
+        mask = pygame.Surface(size, pygame.SRCALPHA)
+        pygame.draw.rect(mask, (255, 255, 255), (0, 0, size[0], size[1]), border_radius=radius)
+        rounded = pygame.Surface(size, pygame.SRCALPHA)
+        rounded.blit(image, (0, 0))
+        rounded.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        return rounded
     avatar = round_avatar(avatar, 65)
 except:
+    def round_avatar(image, radius=65):
+        size = image.get_size()
+        mask = pygame.Surface(size, pygame.SRCALPHA)
+        pygame.draw.rect(mask, (255, 255, 255), (0, 0, size[0], size[1]), border_radius=radius)
+        rounded = pygame.Surface(size, pygame.SRCALPHA)
+        rounded.blit(image, (0, 0))
+        rounded.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        return rounded
     avatar = pygame.Surface((130, 130), pygame.SRCALPHA)
     pygame.draw.circle(avatar, BOX_BORDER, (65, 65), 65)
 
 try:
-    background = pygame.image.load("bg.png").convert()
+    background = pygame.image.load(resource_path("bg.png")).convert()
     background = pygame.transform.smoothscale(background, (WIDTH, HEIGHT))
     has_bg = True
 except:
     has_bg = False
+
+# Load sounds
+try:
+    pygame.mixer.init()
+    send_sound = pygame.mixer.Sound(resource_path("send.wav"))
+except:
+    send_sound = None
+
+try:
+    pygame.mixer.init()
+    receive_sound = pygame.mixer.Sound(resource_path("receive.wav"))
+except:
+    receive_sound = None
 
 input_box = pygame.Rect(20, HEIGHT - INPUT_HEIGHT + 10, WIDTH - 40, 60)
 
@@ -147,7 +139,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def load_responses():
     data = []
-    path = os.path.join(SCRIPT_DIR, "bot_responses.txt")
+    path = resource_path("bot_responses.txt")
     if not os.path.exists(path):
         return [(["hi", "hello", "hey"], "Hello there!")]
     with open(path, "r", encoding="utf-8") as f:
@@ -199,8 +191,39 @@ def finish_reply(user_msg):
     messages.append(("bot", msg))
     typing = False
     auto_scroll = True
+    if receive_sound:
+        receive_sound.play()
     if is_love_message(user_msg):
         spawn_hearts()
+
+def update_hearts():
+    global hearts
+    for h in hearts:
+        h["age"] += 1
+        h["y"] -= h["vy"]
+        h["x"] += h["vx"] + math.sin(h["age"] * h["wobble_speed"] + h["wobble_offset"]) * 0.5
+        fade_start = h["lifetime"] * 0.6
+        if h["age"] > fade_start:
+            h["alpha"] = max(0, int(255 * (1 - (h["age"] - fade_start) / (h["lifetime"] - fade_start))))
+    hearts = [h for h in hearts if h["age"] < h["lifetime"]]
+
+def draw_heart(surface, x, y, size, color, alpha):
+    heart_surf = pygame.Surface((size * 2 + 4, size * 2 + 4), pygame.SRCALPHA)
+    cx, cy = size + 2, size + 2
+    r = size // 2
+    pygame.draw.circle(heart_surf, (*color, alpha), (cx - r, cy - r // 2), r)
+    pygame.draw.circle(heart_surf, (*color, alpha), (cx + r, cy - r // 2), r)
+    points = [
+        (cx - size, cy - r // 2),
+        (cx + size, cy - r // 2),
+        (cx, cy + size),
+    ]
+    pygame.draw.polygon(heart_surf, (*color, alpha), points)
+    surface.blit(heart_surf, (int(x) - size - 2, int(y) - size - 2))
+
+def draw_hearts():
+    for h in hearts:
+        draw_heart(screen, h["x"], h["y"], h["size"], h["color"], h["alpha"])
 
 def wrap_text(text, font, max_width):
     words = text.split(" ")
@@ -356,6 +379,8 @@ def main():
                     if input_text.strip() and not typing:
                         messages.append(("user", input_text.strip()))
                         last_user_msg = input_text
+                        if send_sound:
+                            send_sound.play()
                         start_typing()
                         input_text = ""
                         auto_scroll = True
